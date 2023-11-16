@@ -36,11 +36,11 @@ gt_x = sw // 2
 gt_y = sh - 17
 
 class Vector:
-	def __init__(self):
-		self.cx = 0.0
-		self.cy = 0.0
-		self.vx = 0.0
-		self.vy = 0.0
+	def __init__(self, cx = 0.0, cy = 0.0, vx = 0.0, vy = 0.0):
+		self.cx = cx
+		self.cy = cy
+		self.vx = vx
+		self.vy = vy
 
 
 class Garbage(Vector):
@@ -53,6 +53,8 @@ class Particle(Vector):
 		super().__init__()
 		self.colour = colour
 		self.ttl = 0
+
+last_points: list[Vector] = []
 
 garbage_list: list[Garbage] = []
 particle_list: list[Particle] = []
@@ -86,6 +88,12 @@ def TIC():
 		px -= 1
 	if btn(3):
 		px += 1
+
+	if len(last_points) == 0 or last_points[0].cx != px or last_points[0].cy != py:
+		last_points.insert(0, Vector(px, py))
+
+		if len(last_points) > 10:
+			last_points.pop()
 	
 	if py < b_top: py = b_top
 	if py > b_bottom: py = b_bottom
@@ -93,6 +101,7 @@ def TIC():
 	if px < b_left: px = b_left
 	if px > b_right: px = b_right
 
+	# check garbage truck
 	if capacity > 0 and getDist(gt_x, px, gt_y, py) <= 400:
 		capacity = 0
 		emitParticles(gt_x, gt_y, 7)
@@ -135,7 +144,7 @@ def TIC():
 		spr(19, int(g.cx - 4), int(g.cy - 4), 0)
 
 	if capacity > 0:
-		spr(5, int(px) - 16, int(py - 8), 0)
+		spr(5, int(last_points[-1].cx - 4), int(last_points[-1].cy - 4), 0)
 	
 	# player sprite
 	spr(36, int(px) - 8, int(py - 8), 0, w=2, h=2)
