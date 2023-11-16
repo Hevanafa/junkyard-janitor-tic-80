@@ -32,10 +32,24 @@ px = 120.0
 py = 110.0
 p_frame = 0
 p_face_right = True
-capacity = 0
+p_cash = 0
+
+volume = 0
+"""carry capacity"""
+
+max_volume = 5
+"""max. carry capacity"""
+
+p_suction_level = 1  # Garbage.min_level
+p_volume_level = 1
+p_range_level = 1
+
 
 gt_x = sw // 2
+"""Garbage truck X"""
+
 gt_y = sh - 14
+"""Garbage truck Y"""
 
 class Vector:
 	def __init__(self, cx = 0.0, cy = 0.0, vx = 0.0, vy = 0.0):
@@ -49,6 +63,7 @@ class Garbage(Vector):
 	def __init__(self):
 		super().__init__()
 		self.activated = False
+		self.min_level = 1
 
 class Particle(Vector):
 	def __init__(self, colour: int):
@@ -79,7 +94,7 @@ def emitParticles(x: int, y: int, colour: int):
 # 	g.cy = randint(b_top, b_bottom)
 # 	garbage_list.append(g)
 
-# Todo: spawn in clusters
+# spawn in clusters
 # Todo: upgrades: suction lv, capacity & range
 for a in range(1, 25):
 	g = Garbage()
@@ -95,7 +110,7 @@ for a in range(1, 25):
 garbage_count = len(garbage_list)
 
 def TIC():
-	global p_frame, p_face_right, px, py, capacity
+	global p_frame, p_face_right, px, py, volume
 
 	if btn(0):
 		py -= 0.5
@@ -126,13 +141,13 @@ def TIC():
 		p_frame = 0
 
 	# check garbage truck
-	if capacity > 0 and getDist(gt_x, px, gt_y, py) <= 400:
-		capacity = 0
+	if volume > 0 and getDist(gt_x, px, gt_y, py) <= 400:
+		volume = 0
 		emitParticles(gt_x, gt_y, 7)
 
 
 	for g in garbage_list:
-		g.activated = getDist(g.cx, px, g.cy, py) < 725 and capacity < 5  # 25 pixels
+		g.activated = getDist(g.cx, px, g.cy, py) < 725 and volume < max_volume  # 25 pixels
 
 		if g.activated:
 			g.cx += g.vx
@@ -142,8 +157,8 @@ def TIC():
 			g.vx = sin(rads) * 1.5
 			g.vy = -cos(rads) * 1.5
 
-		if capacity < 5 and getDist(g.cx, px, g.cy, py) < 144:  # 12 pixels
-			capacity += 1
+		if volume < max_volume and getDist(g.cx, px, g.cy, py) < 144:  # 12 pixels
+			volume += 1
 			emitParticles(g.cx, g.cy, 7)
 			garbage_list.remove(g)
 
@@ -166,7 +181,7 @@ def TIC():
 	for g in garbage_list:
 		spr(19, int(g.cx - 4), int(g.cy - 4), 0)
 
-	if capacity > 0:
+	if volume > 0:
 		spr(5, int(last_points[-1].cx - 4), int(last_points[-1].cy - 4), 0)
 	
 	# player sprite
@@ -185,11 +200,15 @@ def TIC():
 
 
 	# HUD
-	s = f"{ capacity } / 5"
+	s = f"{ volume } / 5"
 	w = print(s, y=-100, alt=True)
 	spr(5, sw - w - 18, 2, 0)
-	print(s, sw - w - 10, 4, capacity >= 5 and 8 or 7, alt=True)
+	print(s, sw - w - 10, 4, volume >= max_volume and 8 or 7, alt=True)
+
+	if volume == max_volume:
+		print("FULL!", sw - 30, 12, 8)
 
 	perc = (garbage_count - len(garbage_list)) / garbage_count
 	print(f"{ round(perc * 100) }%", 10, 4, 7, alt=True)
+
 
