@@ -32,6 +32,9 @@ px = 120.0
 py = 110.0
 capacity = 0
 
+gt_x = sw // 2
+gt_y = sh - 17
+
 class Vector:
 	def __init__(self):
 		self.cx = 0.0
@@ -52,7 +55,6 @@ class Particle(Vector):
 		self.ttl = 0
 
 garbage_list: list[Garbage] = []
-
 particle_list: list[Particle] = []
 
 def emitParticles(x: int, y: int, colour: int):
@@ -74,7 +76,7 @@ for a in range(1, 11):
 
 
 def TIC():
-	global px, py
+	global px, py, capacity
 
 	if btn(0):
 		py -= 1
@@ -91,10 +93,17 @@ def TIC():
 	if px < b_left: px = b_left
 	if px > b_right: px = b_right
 
+	if capacity > 0 and getDist(gt_x, px, gt_y, py) <= 400:
+		capacity = 0
+		emitParticles(gt_x, gt_y, 7)
+
 
 	for g in garbage_list:
 		g.cx += g.vx
 		g.cy += g.vy
+
+		if capacity >= 5:
+			continue
 
 		if getDist(g.cx, px, g.cy, py) < 900:  # 30 pixels
 			rads = getShootingAngle(px - g.cx, py - g.cy)
@@ -118,12 +127,16 @@ def TIC():
 	cls(0)
 
 	# garbage truck
-	spr(40, (sw - 16) // 2, sh - 17, 0, w=2, h=2)
+	circb(gt_x, gt_y, 20, 12)
+	spr(40, gt_x - 8, gt_y - 8, 0, w=2, h=2)
 
 	# garbage
 	for g in garbage_list:
 		spr(19, int(g.cx - 4), int(g.cy - 4), 0)
 
+	if capacity > 0:
+		spr(5, int(px) - 16, int(py - 8), 0)
+	
 	# player sprite
 	spr(36, int(px) - 8, int(py - 8), 0, w=2, h=2)
 
