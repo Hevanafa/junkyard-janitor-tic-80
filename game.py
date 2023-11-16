@@ -6,7 +6,7 @@
 # script:  python
 
 # Comment this on release
-from typings import btn, circ, circb, cls, spr
+from typings import btn, circ, circb, cls, spr, print
 
 from math import atan2, pi as PI, sin, cos
 from random import random as rand, randint
@@ -30,6 +30,7 @@ b_bottom = 116
 
 px = 120.0
 py = 110.0
+p_frame = 0
 capacity = 0
 
 gt_x = sw // 2
@@ -76,23 +77,24 @@ for a in range(1, 11):
 	g.cy = randint(b_top, b_bottom)
 	garbage_list.append(g)
 
+garbage_count = len(garbage_list)
 
 def TIC():
-	global px, py, capacity
+	global p_frame, px, py, capacity
 
 	if btn(0):
-		py -= 1
+		py -= 0.5
 	if btn(1):
-		py += 1
+		py += 0.5
 	if btn(2):
-		px -= 1
+		px -= 0.5
 	if btn(3):
-		px += 1
+		px += 0.5
 
 	if len(last_points) == 0 or last_points[0].cx != px or last_points[0].cy != py:
 		last_points.insert(0, Vector(px, py))
 
-		if len(last_points) > 10:
+		if len(last_points) > 20:
 			last_points.pop()
 	
 	if py < b_top: py = b_top
@@ -100,6 +102,10 @@ def TIC():
 
 	if px < b_left: px = b_left
 	if px > b_right: px = b_right
+
+	p_frame += 1
+	if p_frame >= 60:
+		p_frame = 0
 
 	# check garbage truck
 	if capacity > 0 and getDist(gt_x, px, gt_y, py) <= 400:
@@ -147,9 +153,20 @@ def TIC():
 		spr(5, int(last_points[-1].cx - 4), int(last_points[-1].cy - 4), 0)
 	
 	# player sprite
-	spr(36, int(px) - 8, int(py - 8), 0, w=2, h=2)
+	spr(36 + p_frame // 30 * 2, int(px) - 8, int(py - 8), 0, w=2, h=2)
+	print(f"{p_frame}")
 
 	# particles
 	for p in particle_list:
 		circ(int(p.cx), int(p.cy), 1, 7)
+
+
+	# HUD
+	s = f"{ capacity } / 5"
+	w = print(s, y=-100, alt=True)
+	spr(5, sw - w - 18, 2, 0)
+	print(s, sw - w - 10, 4, capacity >= 5 and 8 or 7, alt=True)
+
+	perc = (garbage_count - len(garbage_list)) / garbage_count
+	print(f"{ round(perc * 100) }%", 10, 4, 7, alt=True)
 
