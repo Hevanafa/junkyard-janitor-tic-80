@@ -35,7 +35,7 @@ p_face_right = True
 capacity = 0
 
 gt_x = sw // 2
-gt_y = sh - 17
+gt_y = sh - 14
 
 class Vector:
 	def __init__(self, cx = 0.0, cy = 0.0, vx = 0.0, vy = 0.0):
@@ -46,9 +46,9 @@ class Vector:
 
 
 class Garbage(Vector):
-	pass
-	# def __init__(self):
-	# 	super().__init__()
+	def __init__(self):
+		super().__init__()
+		self.activated = False
 
 class Particle(Vector):
 	def __init__(self, colour: int):
@@ -72,12 +72,24 @@ def emitParticles(x: int, y: int, colour: int):
 		particle_list.append(p)
 
 
+# default spawner
+# for a in range(1, 11):
+# 	g = Garbage()
+# 	g.cx = randint(b_left, b_right)
+# 	g.cy = randint(b_top, b_bottom)
+# 	garbage_list.append(g)
+
 # Todo: spawn in clusters
 # Todo: upgrades: suction lv, capacity & range
-for a in range(1, 11):
+for a in range(1, 25):
 	g = Garbage()
-	g.cx = randint(b_left, b_right)
-	g.cy = randint(b_top, b_bottom)
+	g.cx = 50 + sin(rand() * 2 * PI) * 20
+	g.cy = 50 + cos(rand() * 2 * PI) * 20
+	garbage_list.append(g)
+
+	g = Garbage()
+	g.cx = 190 + sin(rand() * 2 * PI) * 20
+	g.cy = 50 + cos(rand() * 2 * PI) * 20
 	garbage_list.append(g)
 
 garbage_count = len(garbage_list)
@@ -120,18 +132,17 @@ def TIC():
 
 
 	for g in garbage_list:
-		g.cx += g.vx
-		g.cy += g.vy
+		g.activated = getDist(g.cx, px, g.cy, py) < 725 and capacity < 5  # 25 pixels
 
-		if capacity >= 5:
-			continue
+		if g.activated:
+			g.cx += g.vx
+			g.cy += g.vy
 
-		if getDist(g.cx, px, g.cy, py) < 900:  # 30 pixels
 			rads = getShootingAngle(px - g.cx, py - g.cy)
 			g.vx = sin(rads) * 1.5
 			g.vy = -cos(rads) * 1.5
 
-		if getDist(g.cx, px, g.cy, py) < 256:  # 16 pixels
+		if capacity < 5 and getDist(g.cx, px, g.cy, py) < 144:  # 12 pixels
 			capacity += 1
 			emitParticles(g.cx, g.cy, 7)
 			garbage_list.remove(g)
