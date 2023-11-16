@@ -31,6 +31,7 @@ b_bottom = 116
 px = 120.0
 py = 110.0
 p_frame = 0
+p_face_right = True
 capacity = 0
 
 gt_x = sw // 2
@@ -71,6 +72,8 @@ def emitParticles(x: int, y: int, colour: int):
 		particle_list.append(p)
 
 
+# Todo: spawn in clusters
+# Todo: upgrades: suction lv, capacity & range
 for a in range(1, 11):
 	g = Garbage()
 	g.cx = randint(b_left, b_right)
@@ -80,16 +83,19 @@ for a in range(1, 11):
 garbage_count = len(garbage_list)
 
 def TIC():
-	global p_frame, px, py, capacity
+	global p_frame, p_face_right, px, py, capacity
 
 	if btn(0):
 		py -= 0.5
 	if btn(1):
 		py += 0.5
+
 	if btn(2):
 		px -= 0.5
+		p_face_right = False
 	if btn(3):
 		px += 0.5
+		p_face_right = True
 
 	if len(last_points) == 0 or last_points[0].cx != px or last_points[0].cy != py:
 		last_points.insert(0, Vector(px, py))
@@ -125,7 +131,7 @@ def TIC():
 			g.vx = sin(rads) * 1.5
 			g.vy = -cos(rads) * 1.5
 
-		if getDist(g.cx, px, g.cy, py) < 64:  # 8 pixels
+		if getDist(g.cx, px, g.cy, py) < 256:  # 16 pixels
 			capacity += 1
 			emitParticles(g.cx, g.cy, 7)
 			garbage_list.remove(g)
@@ -154,7 +160,13 @@ def TIC():
 	
 	# player sprite
 	spr(36 + p_frame // 30 * 2, int(px) - 8, int(py - 8), 0, w=2, h=2)
-	print(f"{p_frame}")
+	# print(f"{p_frame}")
+
+	# vacuum
+	# Note: 0 is falsy
+	# Ref: https://stackoverflow.com/questions/39983695
+	spr(7, int(px) + (p_face_right and 6 or -14), int(py), 0, flip = 0 if p_face_right else 1)
+
 
 	# particles
 	for p in particle_list:
